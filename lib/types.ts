@@ -52,6 +52,12 @@ export type Furniture = {
   isCenterpiece?: boolean;
 };
 
+/** Raw furniture input: size/position may use y (3D) or z (2D) for compatibility */
+export type RawFurnitureInput = Omit<Partial<Furniture>, "size" | "position"> & {
+  size?: { x?: number; y?: number; z?: number };
+  position?: { x?: number; y?: number; z?: number };
+};
+
 export type RoomLayout = {
   units: "in";
   room: {

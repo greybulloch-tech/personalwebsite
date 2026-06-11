@@ -1,0 +1,109 @@
+---
+description: Human common-sense placement priors after hard constraints pass
+alwaysApply: true
+---
+
+# Common-Sense Placement Priors (Soft Constraints)
+
+Hard constraints always override these priors.
+
+## Priority Order
+
+1) Safety + physics validity
+2) Door access and circulation
+3) Functional zones
+4) Visual balance and aesthetics
+
+## Placement Order
+
+- Place large anchor furniture first (bed/sofa/desk/dresser), then secondary items.
+- Wall-hugging furniture should align to nearest dominant wall.
+- Keep primary circulation path from door to major zones.
+- Prefer desk near daylight; do not block window opening area.
+- Beds should keep at least one practical access side (24in+ clearance).
+- Storage should be wall-adjacent and keep drawer/door front clearance (24in).
+- Maintain visual alignment and avoid random angular drift.
+- Preserve functional zoning: sleep/work/storage/social clusters.
+- Penalize awkward unusable voids and dead-end narrow pockets.
+
+## Functional Zoning
+
+- Sleep zone: bed + nightstand + lamp grouped together.
+- Work zone: desk + chair + task lighting grouped together.
+- Storage zone: dresser/wardrobe placed against walls.
+- Social zone (if space): sofa/chair oriented toward focal point.
+
+Do not scatter items randomly; cluster by zone purpose.
+
+## Bed Placement
+
+- Prefer bed headboard on a solid wall.
+- Avoid placing bed directly in door swing path.
+- Keep at least one side of bed accessible (target 24in+).
+- Prefer placing bed away from heater/AC or window draft zones.
+- In small rooms, prioritize bed fit first before secondary furniture.
+
+## Desk Placement
+
+- Prefer desk near natural light (window-adjacent, not blocking window).
+- Ensure chair pull-back clearance behind desk (target 30in).
+- Avoid facing desk directly into a wall unless room size forces it.
+- Keep desk out of door opening path and primary walkway.
+
+## Storage Placement
+
+- Dressers/wardrobes should be wall-hugging by default.
+- Preserve front access clearance for drawers/doors (target 24in).
+- Do not place tall storage in front of windows.
+- Keep storage away from immediate door landing area.
+
+## Seating / Centerpiece
+
+- Rugs/tables should align with room center or zone center.
+- Maintain symmetry when possible (nightstands, lamps, chairs).
+- Avoid floating tiny objects in large empty space unless intentional.
+
+## Circulation
+
+- Maintain a primary path from door to major zones (bed, desk).
+- Preferred walkway width: 30-36in; minimum allowed: 24in.
+- Avoid dead-end cramped pockets with no usable access.
+- Never force users to side-shuffle between major items.
+
+## Wall / Rotation
+
+- Wall-hugging items rotate to 0/90/180/270 only.
+- Align long edge of large items with nearest dominant wall.
+- Keep a small wall gap (3in default) unless item is wall-hugger.
+
+## Scale Priors (Realistic Defaults)
+
+If dimensions are missing, infer from type with realistic defaults:
+- Twin bed: 39x75in
+- Full bed: 54x75in
+- Queen bed: 60x80in
+- Desk: 48x24in
+- Chair: 18x18in
+- Dresser: 48x20in
+- Nightstand: 20x20in
+- Rug (small): 60x84in
+
+Never invent implausible sizes to "make it fit."
+
+## Deterministic Tie-Breaks
+
+When multiple placements are valid:
+1) Maximize clear walkway score
+2) Minimize hard-to-use gaps (<18in pockets)
+3) Maximize zone coherence (related items closer)
+4) Maximize visual alignment to walls
+5) Use stable deterministic ordering by item id
+
+Same input must always produce same output.
+
+## Output Behavior
+
+- Return a scored layout with explanations.
+- Include `decision_reasons` for major placements.
+- If constraints conflict, report what was sacrificed and why.
+- If no valid placement exists, return violations; do not output invalid geometry.

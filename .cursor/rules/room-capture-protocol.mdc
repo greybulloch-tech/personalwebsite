@@ -1,0 +1,62 @@
+---
+description: Input capture requirements for metric-accurate room reconstruction
+alwaysApply: true
+---
+
+# Capture Protocol Requirements
+
+Reject low-quality capture with clear retry instructions.
+
+## Minimum Required Inputs
+
+- 8-20 photos OR 10-60s video around room perimeter
+- 50-80% overlap between adjacent frames/views
+- At least 3 corners visible across set
+- Floor-wall boundaries visible in multiple views
+- At least one known-size reference in scene (marker/tape) OR depth/LiDAR metadata
+- No heavy motion blur; no aggressive digital zoom
+
+## Recommended Camera Behavior
+
+- Keep camera at chest height for perimeter sweep
+- Include oblique + straight-on views
+- Capture each doorway/window from both sides when possible
+- Keep constant exposure if possible
+- Avoid occluding major surfaces with people
+
+## Auto-Reject Conditions
+
+- Missing floor visibility in most frames
+- Severe blur or rolling-shutter distortion
+- Insufficient overlap for reconstruction
+- No scale reference and no depth source
+- Single-view-only capture for complex room
+
+## User-Facing Capture Instructions
+
+Tell the user:
+1. Record a slow perimeter video (10-30s), camera level, no zoom.
+2. Include all corners, doorways, and window edges.
+3. Put one known-size item in frame (A4 paper, printed marker, tape measure segment).
+4. Take 6-12 still photos from mixed angles after video.
+5. Avoid blur; good light; no people moving in room.
+6. For best accuracy, include one manual measurement (door width or wall length).
+
+## Perfect Mode (Error < 1-2%)
+
+If accuracy target is strict:
+- Require LiDAR-capable device OR
+- Require at least 3 manual dimensions + marker-based scaling
+- Reject reconstruction if uncertainty exceeds threshold
+- Force recapture flow instead of guessing
+
+## Reconstruction Pipeline
+
+1) Quality gate — assess capture quality, reject if insufficient
+2) Camera calibration / undistortion
+3) SfM/SLAM + floor/wall plane extraction
+4) Metric scale solve from references/depth/anchors
+5) Semantic object detection + dimension priors
+6) Constraint solve (hard physics first, soft priors second)
+7) Final validation pass
+8) Output layout OR recapture instructions

@@ -1,0 +1,60 @@
+---
+description: Hard geometry and physics constraints for 1:1 room reconstruction
+alwaysApply: true
+---
+
+# Geometry + Physics Rules (Hard Constraints)
+
+- Internal unit must be inches (or cm) and be consistent across the pipeline.
+- Every output object must have a 3D bounding box with world coordinates.
+- Room shell (floor + walls + ceiling) is authoritative and watertight.
+- No furniture/object may intersect walls, floor holes, or fixed zones.
+- No object-object intersection is allowed unless explicitly marked "stackable/attached".
+- Door leaf sweep volume and door opening clearance must remain unblocked.
+- Window and vent keep-out zones must not be occupied by incompatible objects.
+- If uncertainty is high, output `needs_measurement` instead of forcing a guess.
+- If no valid arrangement exists, return violations and partial result; never output invalid geometry.
+- Determinism required: same inputs produce same final layout.
+
+## Validation Sequence
+
+1) Camera calibration + undistort
+2) Reconstruct room shell
+3) Infer metric scale from references/depth/anchors
+4) Detect openings and fixed zones
+5) Detect objects + size priors
+6) Solve layout with hard constraints
+7) Run overlap/bounds/clearance validators
+8) Emit confidence + violations + recapture instructions
+
+## Non-Negotiable Validators
+
+- `noWallIntersections()` — no object footprint crosses wall boundary
+- `noObjectOverlaps()` — no pairwise furniture intersection
+- `doorSwingClear()` — door sweep arc and opening zone remain empty
+- `fixedZonesClear()` — closets, vents, heaters remain accessible
+- `roomScaleConfidence >= threshold` — reject if scale is ambiguous
+- `maxPoseUncertainty <= threshold` — reject if object position confidence is too low
+
+If any validator fails: mark layout invalid, return diagnostics, never render broken geometry.
+
+## Scale Requirements
+
+To get true 1:1 scale, at least one of these must be present:
+- A known reference length in scene (ArUco marker, tape measure, A4 paper)
+- iPhone LiDAR / depth sensor data
+- Camera intrinsics (calibrated per device)
+- At least 2-4 manually measured wall dimensions
+
+Without any scale anchor, output `scale_ambiguous` violation and request recapture.
+
+## System Prompt for Layout AI
+
+```
+You are a metric room-layout solver.
+Your output must satisfy hard geometric constraints and physical plausibility.
+Never output geometry that intersects walls or overlaps furniture.
+When scale is uncertain, declare uncertainty and request additional measurements.
+Use deterministic tie-breaks and explain major placement decisions.
+Return JSON only matching the room-reconstruction schema.
+```

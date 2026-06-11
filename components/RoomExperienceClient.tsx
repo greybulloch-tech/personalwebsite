@@ -3,7 +3,7 @@
 import * as React from "react";
 import { RoomPlan } from "./RoomPlan";
 import { Room3DScene } from "./Room3DScene";
-import type { RoomLayout } from "../lib/types";
+import type { RoomLayout, Furniture } from "../lib/types";
 import { normalizeModelData } from "../lib/normalizeModelData";
 
 type HistoryState = {
@@ -18,6 +18,8 @@ export function RoomExperienceClient() {
   const [future, setFuture] = React.useState<HistoryState[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [selectedFurniture, setSelectedFurniture] = React.useState<Furniture | null>(null);
+  const [cameraView, setCameraView] = React.useState<"default" | "top" | "front" | "side" | "isometric">("default");
 
   const canUndo = past.length > 0;
   const canRedo = future.length > 0;
@@ -93,6 +95,10 @@ export function RoomExperienceClient() {
     }
   };
 
+  const handleFurnitureClick = (furniture: Furniture) => {
+    setSelectedFurniture(furniture);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -157,7 +163,101 @@ export function RoomExperienceClient() {
           layoutOverride={layout}
           onLayoutChange={(next) => setLayout(next)}
         />
-        <Room3DScene layout={layout ?? undefined} />
+        <div className="flex flex-col gap-3">
+          {/* Camera Controls */}
+          <div className="flex flex-wrap gap-2">
+            <button
+              className={`px-2 py-1 text-xs font-medium rounded transition ${
+                cameraView === "default"
+                  ? "bg-blue-600 text-white"
+                  : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+              }`}
+              onClick={() => setCameraView("default")}
+            >
+              Default
+            </button>
+            <button
+              className={`px-2 py-1 text-xs font-medium rounded transition ${
+                cameraView === "top"
+                  ? "bg-blue-600 text-white"
+                  : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+              }`}
+              onClick={() => setCameraView("top")}
+            >
+              Top View
+            </button>
+            <button
+              className={`px-2 py-1 text-xs font-medium rounded transition ${
+                cameraView === "front"
+                  ? "bg-blue-600 text-white"
+                  : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+              }`}
+              onClick={() => setCameraView("front")}
+            >
+              Front View
+            </button>
+            <button
+              className={`px-2 py-1 text-xs font-medium rounded transition ${
+                cameraView === "side"
+                  ? "bg-blue-600 text-white"
+                  : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+              }`}
+              onClick={() => setCameraView("side")}
+            >
+              Side View
+            </button>
+            <button
+              className={`px-2 py-1 text-xs font-medium rounded transition ${
+                cameraView === "isometric"
+                  ? "bg-blue-600 text-white"
+                  : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+              }`}
+              onClick={() => setCameraView("isometric")}
+            >
+              Isometric
+            </button>
+          </div>
+
+          <Room3DScene
+            layout={layout ?? undefined}
+            onFurnitureClick={handleFurnitureClick}
+            cameraView={cameraView}
+          />
+
+          {/* Furniture Info Panel */}
+          {selectedFurniture && (
+            <div className="rounded-lg border border-zinc-700 bg-zinc-900/60 p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-zinc-400">Selected Furniture</p>
+                  <h3 className="mt-1 text-base font-semibold text-zinc-100">
+                    {selectedFurniture.name}
+                  </h3>
+                  <div className="mt-2 space-y-1 text-xs text-zinc-400">
+                    <p>
+                      <span className="font-medium">Type:</span> {selectedFurniture.kind}
+                    </p>
+                    <p>
+                      <span className="font-medium">Size:</span> {selectedFurniture.size.x}" × {selectedFurniture.size.z}"
+                    </p>
+                    <p>
+                      <span className="font-medium">Rotation:</span> {selectedFurniture.rotation}°
+                    </p>
+                    <p>
+                      <span className="font-medium">Position:</span> ({selectedFurniture.position.x}", {selectedFurniture.position.z}")
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedFurniture(null)}
+                  className="text-zinc-500 hover:text-zinc-300 transition"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

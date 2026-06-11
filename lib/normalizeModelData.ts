@@ -1,4 +1,4 @@
-import type { Furniture, RoomLayout } from "./types";
+import type { Furniture, RawFurnitureInput, RoomLayout } from "./types";
 import { enforceAbsoluteBoundsForLayout } from "./enforceAbsoluteBounds";
 import { getFurnitureCatalogEntry, getFurnitureSize } from "./furnitureCatalog";
 
@@ -9,7 +9,7 @@ import { getFurnitureCatalogEntry, getFurnitureSize } from "./furnitureCatalog";
 
 function createDefaultRectangularRoom(): RoomLayout {
   const width = 120; // 10ft
-  const depth = 144; // 12ft
+  const depth = 156; // 13ft
   const wallThickness = 6;
 
   // Build walls from room dimensions
@@ -52,6 +52,43 @@ function createDefaultRectangularRoom(): RoomLayout {
     swing: "in_right" as const,
   };
 
+  // Default furniture for MVP: bed, desk, nightstand
+  const defaultFurniture: Furniture[] = [
+    {
+      id: "bed-1",
+      name: "Twin Bed",
+      kind: "bed",
+      type: "bed_twin",
+      position: { x: 60, z: 50 }, // Left side of room
+      size: { x: 39, z: 80 },
+      rotation: 0,
+      isWallHugger: true,
+      isCenterpiece: false,
+    },
+    {
+      id: "desk-1",
+      name: "Standard Desk",
+      kind: "desk",
+      type: "desk_standard",
+      position: { x: 60, z: 120 }, // Back wall
+      size: { x: 48, z: 24 },
+      rotation: 0,
+      isWallHugger: true,
+      isCenterpiece: false,
+    },
+    {
+      id: "nightstand-1",
+      name: "Nightstand",
+      kind: "nightstand",
+      type: "nightstand",
+      position: { x: 110, z: 50 }, // Next to bed
+      size: { x: 18, z: 18 },
+      rotation: 0,
+      isWallHugger: true,
+      isCenterpiece: false,
+    },
+  ];
+
   return {
     units: "in",
     room: {
@@ -64,11 +101,11 @@ function createDefaultRectangularRoom(): RoomLayout {
     fixedZones: [],
     walls,
     doors: [door],
-    furniture: [],
+    furniture: defaultFurniture,
   };
 }
 
-function normalizeFurniture(raw: Partial<Furniture>[]): Furniture[] {
+function normalizeFurniture(raw: RawFurnitureInput[]): Furniture[] {
   return raw
     .filter((f) => f.type || f.kind)
     .map((f, idx) => {
@@ -78,21 +115,21 @@ function normalizeFurniture(raw: Partial<Furniture>[]): Furniture[] {
       // Infer kind from type if not provided
       const kind = f.kind || (catalogEntry?.type as any) || "custom";
       
-      // Get size from catalog or use provided size
+      // Get size from catalog or use provided size (raw may have x/y/z from 3D)
       const catalogSize = catalogEntry
         ? getFurnitureSize(type, f.rotation || 0)
-        : { width: f.size?.x || 24, depth: f.size?.z || f.size?.y || 24 };
+        : { width: f.size?.x ?? 24, depth: f.size?.z ?? f.size?.y ?? 24 };
       
       const size = f.size
-        ? { x: f.size.x, z: f.size.z || f.size.y || f.size.x }
+        ? { x: f.size.x ?? catalogSize.width, z: f.size.z ?? f.size.y ?? f.size.x ?? catalogSize.depth }
         : { x: catalogSize.width, z: catalogSize.depth };
 
       const isWallHugger = catalogEntry?.isWallHugger ?? f.isWallHugger ?? false;
       const isCenterpiece = f.isCenterpiece ?? false;
 
-      // Normalize position: convert y→z if needed, ensure x/z format
+      // Normalize position: raw may use z (2D) or y (3D)
       const position = f.position
-        ? { x: f.position.x, z: f.position.z ?? f.position.y ?? 0 }
+        ? { x: f.position.x ?? 0, z: f.position.z ?? f.position.y ?? 0 }
         : { x: 0, z: 0 };
 
       // Normalize rotation: snap to allowed values for wall-huggers
